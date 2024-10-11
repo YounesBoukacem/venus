@@ -23,33 +23,44 @@ if __name__ == "__main__":
 	args = parser.parse_args()
 	action = args.action
 	
+
+	## Initializing the repo
 	if action == "init":
+
+		# creating the .venus folder (empty for now)	
 		os.makedirs('.venus/')
-		cfg = OmegaConf.create({
-			"datasets":{
-				"last-dataset-id" : 0,
-				"datasets-tags" : {}
-			},
-			"xperiments":{
-				"last-xpgroup-id" : 0,
-				"xpgroups-tags" : {}
-			}
-		})
-		OmegaConf.save(cfg, ".venus/venus-db.yaml")
+		
+		# creating the datasets folder
 		os.makedirs("datasets/")
+		# it will contain a datasets.yaml file which will store the last-dataset-id and the tags of the created datasets
+		cfg = OmegaConf.create({
+			"last-dataset-id" : 0,
+			"datasets-tags" : {}
+		})
+		OmegaConf.save(cfg, "datasets/datasets.yaml")
+
+		
+		# creating the xperiments folder
 		os.makedirs("xperiments/")
+		# it will contain an xperiments.yaml file which will store the last-xpgroup-id and the tags of the created xpgroups
+		cfg = OmegaConf.create({
+			"last-xpgroup-id" : 0,
+			"xpgroups-tags" : {}
+		})
+		OmegaConf.save(cfg, "xperiments/xpgroups.yaml")
+
 
 	## Creating a new dataset
 	elif action == "ds":
 
 		# creating the id for the new dataset
-		cfg = OmegaConf.load(".venus/venus-db.yaml")
-		new_id = cfg["datasets"]["last-dataset-id"] = cfg["datasets"]["last-dataset-id"] + 1
-		cfg["datasets"]["datasets-tags"][f"dataset-{new_id}"] = args.tags
-		OmegaConf.save(cfg, ".venus/venus-db.yaml")
+		cfg = OmegaConf.load("datasets/datasets.yaml")
+		new_dataset_id = cfg["last-dataset-id"] = cfg["last-dataset-id"] + 1
+		cfg["datasets-tags"][f"dataset-{new_dataset_id}"] = args.tags
+		OmegaConf.save(cfg, "datasets/datasets.yaml")
 
 		# creating the base folder boilerplate
-		DIR = f"datasets/dataset-{new_id}/"
+		DIR = f"datasets/dataset-{new_dataset_id}/"
 		os.makedirs(DIR)
 		with open(DIR+".readme.md", "w") as f:
 			f.write("# DESCRIPTION\n\n")
@@ -64,112 +75,84 @@ if __name__ == "__main__":
 		with open(DIR+"data/.gitkeep", "w") as _:
 			pass
 		
-		# creating the datapreps subfolder with the .gitignore and .gitkeep files
+		# creating the datapreps subfolder with the .gitignore, .gitkeep and datapreps.yaml files
 		os.makedirs(DIR+"datapreps")
 		with open(DIR+"datapreps/.gitignore", "w") as f:
 			f.write("*\n!.gitkeep")
 		with open(DIR+"datapreps/.gitkeep", "w") as _:
 			pass
-	
+		cfg = OmegaConf.create({
+			"last-dataprep-id": 0,
+			"datapreps-tags": {}
+		})
+		OmegaConf.save(cfg, DIR+"datapreps/datapreps.yaml")
+
+
 	## Creating a new dataprep within some dataset
 	elif action == "dp":
 
-		# checking if the user provided the datasetid
-		if args.datasetid is None:
-			print("ERROR: dsi (dataset id) must be passed as argument to create a new dp (dataprep)")
-			exit(-1)
-		
-		# add a try catch block here in case the user passes something that isn't an integer
+		# getting the datasetid passed as cli argument 
 		dsi = int(args.datasetid)
-		
-		# resolving the dataset in which we want to create the new dataprep
-		resolved = False
-		for dataset in glob.glob("datasets/*"):
-			if dsi == int(dataset.split("/")[-1].split("-")[1]):
-				resolved = True
-				break
-		if not resolved:
-			print("ERROR: the supplied dsi (dastaset id) doesn't exist")
-			exit(-1)
 
-		# creating the id for the new dataprep
-		max_id = -float("inf")
-		for dataprep in glob.glob(dataset+"/datapreps/*"):
-			print(dataprep)
-			if max_id < (id := int(dataprep.split("/")[-1].split("-")[1])):
-				max_id = id
-		if max_id == -float("inf"): max_id = 0
-		new_id = max_id + 1
-
-		# creating the tags_string
-		tags_string = generate_tags_string(args.tags)
+		# creating the new_dataprepr_id and its entry in the local datapreps.yaml file
+		cfg = OmegaConf.load(f"datasets/dataset-{dsi}/datapreps/datapreps.yaml")
+		new_dataprep_id =  cfg["last-dataprep-id"] = cfg["last-dataprep-id"] + 1
+		cfg["datapreps-tags"][f"dataprep-{new_dataprep_id}"] =  args.tags
+		OmegaConf.save(cfg, f"datasets/dataset-{dsi}/datapreps/datapreps.yaml")
 
 		# creating the base folder boilerplate
-		DIR = dataset+f"/datapreps/dataprep-{new_id}{tags_string}/"
+		DIR = f"datasets/dataset-{dsi}/datapreps/dataprep-{new_dataprep_id}/"
+		
 		os.makedirs(DIR)
+		
 		with open(DIR+".readme.md", "w") as f:
 			f.write("# DESCRIPTION\n\n")
 			f.write("# OBTENTION\n\n")
 			f.write("# META-DATA\n\n")
 			f.write("# DATA-LOCATION\n\n")
+		
 		os.makedirs(DIR+"data")
+		
+		with open(DIR+"data/.gitignore", "w") as f:
+			f.write("*\n!.gitkeep")
+		with open(DIR+"data/.gitkeep", "w") as f:
+			pass
 	
 
 	## Creating a new xpgroup
 	elif action == "xg":
 
-		# creating the id for the new xpgroup
-		max_id = -float("inf")
-		for xpgroup in glob.glob("xperiments/*"):
-			if max_id < (id := int(xpgroup.split("/")[-1].split("-")[1])):
-				max_id = id
-		if max_id == -float("inf"): max_id = 0
-		new_id = max_id + 1
-		
-		# creating the tags_string
-		# tags_string = generate_tags_string(args.tags)
-		
+		# creating the id for the new dataset
+		cfg = OmegaConf.load("xperiments/xpgroups.yaml")
+		new_id = cfg["last-xpgroup-id"] = cfg["last-xpgroup-id"] + 1
+		cfg["xpgroups-tags"][f"xpgroup-{new_id}"] = args.tags
+		OmegaConf.save(cfg, "xperiments/xpgroups.yaml")
+
 		# creating the base folder boilerplate
 		DIR = f"xperiments/xpgroup-{new_id}/"
 		os.makedirs(DIR)
-		with open(DIR+".readme.md", "w") as f:
-			f.write("# DESCRIPTION\n\n")
+
+		cfg = OmegaConf.create({
+			"last-xp-id": 0,
+			"xps-tags": {}
+		})
+		OmegaConf.save(cfg, DIR+"xps.yaml")
 	
 	
 	## Crearting a new xp
 	elif action == "xp":
 
-		# checking if the user provided the xpgroupid
-		if args.xpgroupid is None:
-			print("ERROR: xgi (xpgroup id) must be passed as argument to create a new dp (dataprep)")
-			exit(-1)
-		
-		# add a try catch block here in case the user passes something that isn't an integer
+		# loading the xpgroup_tags
 		xgi = int(args.xpgroupid)
-		
-		# resolving the xpgroup on which we want to create the new xp
-		resolved = False
-		for xpgroup in glob.glob("xperiments/*"):
-			if xgi == int(xpgroup.split("/")[-1].split("-")[1]):
-				resolved = True
-				break
-		if not resolved:
-			print("ERROR: the supplied xgi (xpgroup id) doesn't exist")
-			exit(-1)
+		xpgroup_tags = OmegaConf.load("xperiments/xpgroups.yaml")["xpgroups-tags"][f"xpgroup-{xgi}"]
 
-		# creating the id for the new xp
-		max_id = -float("inf")
-		for xp in glob.glob(xpgroup+"/*"):
-			if max_id < (id := int(xp.split("/")[-1].split("-")[1])):
-				max_id = id
-		if max_id == -float("inf"): max_id = 0
-		new_id = max_id + 1
-		
-		# creating the tags_string
-		tags_string = generate_tags_string(args.tags)
+		# creating the new_xp_id and creating the xps-tags entry for the new xp 
+		cfg = OmegaConf.load(f"xperiments/xpgroup-{xgi}/xps.yaml")
+		new_xp_id = cfg["last-xp-id"] = cfg["last-xp-id"] + 1
+		cfg["xps-tags"][f"xp-{new_xp_id}"] = xp_tags = args.tags
 
-		# creating the base directory boilerplate
-		DIR = xpgroup + f"/xp-{new_id}{tags_string}/"
+		# creating the xp-<id> folder boilerplate
+		DIR = f"xperiments/xpgroup-{xgi}/xp-{new_xp_id}/"
 		os.makedirs(DIR)
 		with open(DIR+".readme.md", "w") as f:
 			f.write("# DESCRIPTION\n\n")
@@ -178,7 +161,15 @@ if __name__ == "__main__":
 			f.write("# MODELS-LOCATION\n\n")
 		os.makedirs(DIR+"train")
 		os.makedirs(DIR+"evals")
-	
+		cfg = OmegaConf.create({
+			"neptune-id" : f"XPG-{new_xp_id}-XG-{xgi}",
+			"xpgroup-tags" : xpgroup_tags,
+			"xp-tags" : xp_tags
+		})
+		OmegaConf.save(cfg, DIR+"xp.yaml")
+
+		
+	## Error in the --action cli argument
 	else:
 		print("ERROR: a valid action (ds, dp, xg, xp) must be supplied")
 		exit(-1)
