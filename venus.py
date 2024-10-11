@@ -27,10 +27,10 @@ if __name__ == "__main__":
 		os.makedirs('.venus/')
 		cfg = OmegaConf.create({
 			"datasets":{
-				"last-dataset-id" : 0
+				"last_dataset_id" : 0
 			},
 			"xperiments":{
-				"last-xpgroup-id" : 0
+				"last_xpgroup_id" : 0
 			}
 		})
 		with open(".venus/venus-db.yaml", "w") as f:
@@ -40,12 +40,8 @@ if __name__ == "__main__":
 	elif action == "ds":
 
 		# creating the id for the new dataset
-		max_id = -float("inf")
-		for dataset in glob.glob("datasets/*"):
-			if max_id < (id := int(dataset.split("/")[-1].split("-")[1])):
-				max_id = id
-		if max_id == -float("inf"): max_id = 0
-		new_id = max_id + 1
+		cfg = OmegaConf.load(".venus/venus-db.yaml")
+		new_id = cfg.datasets.last
 		
 		# creating the tags_string
 		tags_string = generate_tags_string(args.tags)
