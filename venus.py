@@ -77,10 +77,6 @@ if __name__ == "__main__":
 		
 		# creating the datapreps subfolder with the .gitignore, .gitkeep and datapreps.yaml files
 		os.makedirs(DIR+"datapreps")
-		with open(DIR+"datapreps/.gitignore", "w") as f:
-			f.write("*\n!.gitkeep")
-		with open(DIR+"datapreps/.gitkeep", "w") as _:
-			pass
 		cfg = OmegaConf.create({
 			"last-dataprep-id": 0,
 			"datapreps-tags": {}
@@ -150,7 +146,8 @@ if __name__ == "__main__":
 		cfg = OmegaConf.load(f"xperiments/xpgroup-{xgi}/xps.yaml")
 		new_xp_id = cfg["last-xp-id"] = cfg["last-xp-id"] + 1
 		cfg["xps-tags"][f"xp-{new_xp_id}"] = xp_tags = args.tags
-
+		OmegaConf.save(cfg, f"xperiments/xpgroup-{xgi}/xps.yaml")
+		
 		# creating the xp-<id> folder boilerplate
 		DIR = f"xperiments/xpgroup-{xgi}/xp-{new_xp_id}/"
 		os.makedirs(DIR)
@@ -162,13 +159,13 @@ if __name__ == "__main__":
 		os.makedirs(DIR+"train")
 		os.makedirs(DIR+"evals")
 		cfg = OmegaConf.create({
-			"neptune-id" : f"XPG-{new_xp_id}-XG-{xgi}",
+			"neptune-id" : f"XPG-{xgi}-XG-{new_xp_id}",
 			"xpgroup-tags" : xpgroup_tags,
 			"xp-tags" : xp_tags
 		})
 		OmegaConf.save(cfg, DIR+"xp.yaml")
 
-		
+
 	## Error in the --action cli argument
 	else:
 		print("ERROR: a valid action (ds, dp, xg, xp) must be supplied")
