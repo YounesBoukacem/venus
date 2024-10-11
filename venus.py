@@ -27,27 +27,29 @@ if __name__ == "__main__":
 		os.makedirs('.venus/')
 		cfg = OmegaConf.create({
 			"datasets":{
-				"last_dataset_id" : 0
+				"last-dataset-id" : 0,
+				"datasets-tags" : {}
 			},
 			"xperiments":{
-				"last_xpgroup_id" : 0
+				"last-xpgroup-id" : 0,
+				"xpgroups-tags" : {}
 			}
 		})
-		with open(".venus/venus-db.yaml", "w") as f:
-			OmegaConf.save(cfg, f)
+		OmegaConf.save(cfg, ".venus/venus-db.yaml")
+		os.makedirs("datasets/")
+		os.makedirs("xperiments/")
 
 	## Creating a new dataset
 	elif action == "ds":
 
 		# creating the id for the new dataset
 		cfg = OmegaConf.load(".venus/venus-db.yaml")
-		new_id = cfg.datasets.last
-		
-		# creating the tags_string
-		tags_string = generate_tags_string(args.tags)
+		new_id = cfg["datasets"]["last-dataset-id"] = cfg["datasets"]["last-dataset-id"] + 1
+		cfg["datasets"]["datasets-tags"][f"dataset-{new_id}"] = args.tags
+		OmegaConf.save(cfg, ".venus/venus-db.yaml")
 
 		# creating the base folder boilerplate
-		DIR = f"datasets/dataset-{new_id}{tags_string}/"
+		DIR = f"datasets/dataset-{new_id}/"
 		os.makedirs(DIR)
 		with open(DIR+".readme.md", "w") as f:
 			f.write("# DESCRIPTION\n\n")
