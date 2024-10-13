@@ -87,10 +87,10 @@ if __name__ == "__main__":
 			f.write("# DATA-LOCATION\n\n")
 		
 		# creating the data subfolder with the .gitignore and .gitkeep files
-		os.makedirs(DIR+"data")
-		with open(DIR+"data/.gitignore", "w") as f:
+		os.makedirs(DIR+f"data-ds-{new_dataset_id}/")
+		with open(DIR+f"data-ds-{new_dataset_id}/.gitignore", "w") as f:
 			f.write("*\n!.gitkeep")
-		with open(DIR+"data/.gitkeep", "w") as _:
+		with open(DIR+f"data-ds-{new_dataset_id}/.gitkeep", "w") as _:
 			pass
 		
 		# creating the datapreps subfolder with the .gitignore, .gitkeep and datapreps.yaml files
@@ -125,11 +125,11 @@ if __name__ == "__main__":
 			f.write("# META-DATA\n\n")
 			f.write("# DATA-LOCATION\n\n")
 		
-		os.makedirs(DIR+"data")
+		os.makedirs(DIR+f"data-dp-{dsi}-{new_dataprep_id}/")
 		
-		with open(DIR+"data/.gitignore", "w") as f:
+		with open(DIR+f"data-dp-{dsi}-{new_dataprep_id}/.gitignore", "w") as f:
 			f.write("*\n!.gitkeep")
-		with open(DIR+"data/.gitkeep", "w") as f:
+		with open(DIR+f"data-dp-{dsi}-{new_dataprep_id}/.gitkeep", "w") as f:
 			pass
 	
 
@@ -177,7 +177,7 @@ if __name__ == "__main__":
 		os.makedirs(DIR+"train")
 		os.makedirs(DIR+"evals")
 		cfg = OmegaConf.create({
-			"neptune-id" : f"XPG-{xgi}-XP-{new_xp_id}",
+			"neptune-id" : f"XG-{xgi}-XP-{new_xp_id}",
 			"xpgroup-tags" : xpgroup_tags,
 			"xp-tags" : xp_tags
 		})
