@@ -26,7 +26,7 @@ if __name__ == "__main__":
 	## Initializing the repo
 	if action == "init":
 
-		# creating the .venus folder (empty for now)	
+		# creating the .venus folder	
 		os.makedirs(".venus/")
 		cfg = OmegaConf.create({
 			"neptune-name" : None,
@@ -55,7 +55,7 @@ if __name__ == "__main__":
 	
 
 	# synchronize the xperiments.db and xpgroup-<id>.db tags with xp-<xgi>-<xpi>.conf
-	# WARNING: This supposes that all tags modifications are done through the dbs and not directly in the confs, synchronizing will overwrite
+	# WARNING: This supposes that all tags modifications are done through the dbs and not directly in the confs, synchronizing will overwrite the confs
 	elif action == "sync":
 		xperiments_db = OmegaConf.load("xperiments/xperiments.db")
 		for xpgroup_id, xpgroup_tags in xperiments_db["xpgroups"].items():
@@ -174,8 +174,8 @@ if __name__ == "__main__":
 			f.write("# OBTENTION\n\n")
 			f.write("# META-DATA\n\n")
 			f.write("# MODELS-LOCATION\n\n")
-		os.makedirs(DIR+"train")
-		os.makedirs(DIR+"evals")
+		os.makedirs(DIR+f"train-{xgi}-{new_xp_id}")
+		os.makedirs(DIR+f"evals-{xgi}-{new_xp_id}")
 		cfg = OmegaConf.create({
 			"neptune-id" : f"XG-{xgi}-XP-{new_xp_id}",
 			"xpgroup-tags" : xpgroup_tags,
