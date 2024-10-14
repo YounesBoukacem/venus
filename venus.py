@@ -1,8 +1,6 @@
 import argparse
 import os
-import glob
 from omegaconf import OmegaConf
-
 
 action_help = """Action, can be:
 - init ; initiliazes the repo according to the venus structure
@@ -29,8 +27,8 @@ if __name__ == "__main__":
 		# creating the .venus folder	
 		os.makedirs(".venus/")
 		cfg = OmegaConf.create({
-			"neptune-name" : None,
-			"neptune-token" : None
+			"project" : None,
+			"api-token" : None
 		})
 		OmegaConf.save(cfg, ".venus/neptune.db")
 		
@@ -57,6 +55,10 @@ if __name__ == "__main__":
 	# synchronize the xperiments.db and xpgroup-<id>.db tags with xp-<xgi>-<xpi>.conf
 	# WARNING: This supposes that all tags modifications are done through the dbs and not directly in the confs, synchronizing will overwrite the confs
 	elif action == "sync":
+		
+		import neptune
+		neptune_db = OmegaConf.load(".venus/neptune.db")
+
 		xperiments_db = OmegaConf.load("xperiments/xperiments.db")
 		for xpgroup_id, xpgroup_tags in xperiments_db["xpgroups"].items():
 			print(xpgroup_id,":",xpgroup_tags)
@@ -66,8 +68,18 @@ if __name__ == "__main__":
 				xp_conf["xpgroup-tags"] = xpgroup_tags
 				xp_conf["xp-tags"] = xp_tags
 				OmegaConf.save(xp_conf, f"xperiments/{xpgroup_id}/{xp_id}/{xp_id}.conf")
-	
-	
+				
+				run = neptune.init_run(
+					project = neptune_db["project"],
+					api_token = neptune_db["api-token"],
+					custom_run_id = f"XG-{xpgroup_id.split('-')[1]}-XP-{xp_id.split('-')[2]}"
+				)
+				run["sys/tags"].clear()
+				run["sys/tags"].add(xp_tags.split(" "))
+				run["sys/group_tags"].add(xpgroup_tags.split(" "))
+				run.stop()
+
+
 	## Creating a new dataset
 	elif action == "ds":
 
@@ -131,7 +143,7 @@ if __name__ == "__main__":
 			f.write("*\n!.gitkeep")
 		with open(DIR+f"data-dp-{dsi}-{new_dataprep_id}/.gitkeep", "w") as f:
 			pass
-	
+
 
 	## Creating a new xpgroup
 	elif action == "xg":
@@ -153,7 +165,7 @@ if __name__ == "__main__":
 		OmegaConf.save(cfg, DIR+f"xpgroup-{new_xpgroup_id}.db")
 	
 	
-	## Crearting a new xp
+	## Creating a new xp
 	elif action == "xp":
 
 		# loading the xpgroup_tags
@@ -183,6 +195,18 @@ if __name__ == "__main__":
 		})
 		OmegaConf.save(cfg, DIR+f"xp-{xgi}-{new_xp_id}.conf")
 
+		# creating the neptune run with xpgroup_tags and xp_tags
+		import neptune
+		neptune_db = OmegaConf.load(".venus/neptune.db")
+		run = neptune.init_run(
+			project = neptune_db["project"],
+			api_token = neptune_db["api-token"],
+			custom_run_id = f"XG-{xgi}-XP-{new_xp_id}",
+			tags = xp_tags.split(" "),
+		)
+		run["sys/group_tags"].clear()
+		run["sys/group_tags"].add(xpgroup_tags.split(" "))
+		run.stop()
 
 	## Error in the --action cli argument
 	else:
