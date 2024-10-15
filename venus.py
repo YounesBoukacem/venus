@@ -65,7 +65,7 @@ if __name__ == "__main__":
 		xperiments_db_cache = OmegaConf.load(".venus/xperiments.db.cache")
 
 		for xpgroup_id, xpgroup_tags in xperiments_db["xpgroups"].items():
-			print(f"\n\n\n=== SYNCING {xpgroup_id}... ===")
+			print(f"\n######\n\n=== SYNCING {xpgroup_id} ... ===")
 			xpgroup_db = OmegaConf.load(f"xperiments/{xpgroup_id}/{xpgroup_id}.db")
 			xpgroup_db_cache = OmegaConf.load(f".venus/{xpgroup_id}.db.cache")
 			
@@ -81,7 +81,7 @@ if __name__ == "__main__":
 					sync_xp_tags = xp_tags != xpgroup_db_cache["xps"][xp_id]
 				
 				if sync_xpgroup_tags or sync_xp_tags:
-					print("\n-------------------------------------------------------------------------------------")
+					print("-----------------------")
 					print(f">>> SYNCING {xp_id} ...")
 					xp_conf = OmegaConf.load(f"xperiments/{xpgroup_id}/{xp_id}/{xp_id}.conf")
 					xp_conf["xpgroup-tags"] = xpgroup_tags
@@ -99,10 +99,11 @@ if __name__ == "__main__":
 					run["sys/group_tags"].add(xpgroup_tags.split(" "))
 					run.stop()
 					print(f">>> DONE WITH {xp_id}")
-					print("-------------------------------------------------------------------------------------")
+					
 			
 			OmegaConf.save(xpgroup_db, f".venus/{xpgroup_id}.db.cache")
-			print(f"=== DONE    {xpgroup_id}    ===")
+			print("-----------------------")
+			print(f"=== ENDED   {xpgroup_id}     ===")
 		
 		OmegaConf.save(xperiments_db, ".venus/xperiments.db.cache")
 
