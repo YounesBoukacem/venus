@@ -219,7 +219,7 @@ if __name__ == "__main__":
 		os.makedirs(DIR+f"train-{xgi}-{new_xp_id}")
 		os.makedirs(DIR+f"evals-{xgi}-{new_xp_id}")
 		cfg = OmegaConf.create({
-			"neptune-id" : f"XG-{xgi}-XP-{new_xp_id}",
+			"neptune-id" : f"XP-{xgi}-{new_xp_id}",
 			"xpgroup-tags" : xpgroup_tags,
 			"xp-tags" : xp_tags
 		})
